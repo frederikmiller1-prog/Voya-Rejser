@@ -1,13 +1,14 @@
+
 /* PASSENGER MODAL */
 .modal-overlay{
-  position:fixed; inset:0; background:rgba(11,37,69,0.55);
+  position:fixed; inset:0; background:rgba(32,36,42,0.55);
   display:flex; align-items:center; justify-content:center; z-index:100;
   padding:20px; opacity:0; animation:fadeInOverlay .2s ease forwards;
 }
 @keyframes fadeInOverlay{ to{opacity:1;} }
 .modal-card{
   background:var(--white); border-radius:18px; padding:32px;
-  max-width:440px; width:100%; box-shadow:0 30px 70px -20px rgba(11,37,69,0.4);
+  max-width:440px; width:100%; box-shadow:0 30px 70px -20px rgba(32,36,42,0.4);
   animation:riseIn .3s cubic-bezier(.2,.8,.2,1) both;
   max-height:88vh; overflow-y:auto;
 }
@@ -29,28 +30,28 @@
 .segment-point{display:flex; flex-direction:column; min-width:52px;}
 .segment-point-end{align-items:flex-end; text-align:right;}
 .segment-time{font-family:var(--mono); font-weight:700; font-size:1.05rem; color:var(--ink);}
-.segment-airport{font-size:0.76rem; color:rgba(11,37,69,0.55); font-weight:600;}
+.segment-airport{font-size:0.76rem; color:rgba(32,36,42,0.55); font-weight:600;}
 .segment-mid{display:flex; flex-direction:column; align-items:center; gap:4px;}
-.segment-duration{font-size:0.74rem; color:rgba(11,37,69,0.5); font-weight:600;}
+.segment-duration{font-size:0.74rem; color:rgba(32,36,42,0.5); font-weight:600;}
 .segment-line{width:100%; height:1px; background:var(--line); position:relative; margin:2px 0;}
 .segment-line::after{
   content:"✈"; position:absolute; top:50%; left:50%; transform:translate(-50%,-55%) rotate(90deg);
   font-size:0.7rem; color:var(--teal);
 }
-.segment-flight{font-size:0.72rem; color:rgba(11,37,69,0.5);}
+.segment-flight{font-size:0.72rem; color:rgba(32,36,42,0.5);}
 .layover-badge{
   background:var(--paper); border:1px dashed var(--line); border-radius:999px;
-  padding:6px 14px; font-size:0.76rem; color:rgba(11,37,69,0.65); font-weight:600;
+  padding:6px 14px; font-size:0.76rem; color:rgba(32,36,42,0.65); font-weight:600;
   text-align:center; margin:4px 0; display:block;
 }
 .itinerary-total{
   display:flex; justify-content:space-between; align-items:center;
   border-top:1px solid var(--line); margin-top:16px; padding-top:14px;
-  font-size:0.88rem; color:rgba(11,37,69,0.65);
+  font-size:0.88rem; color:rgba(32,36,42,0.65);
 }
 .itinerary-total strong{font-family:var(--mono); font-size:1.1rem; color:var(--ink);}
 .modal-card h3{font-family:var(--display); font-size:1.3rem; margin:0 0 6px;}
-.modal-card p.modal-sub{font-size:0.88rem; color:rgba(11,37,69,0.6); margin:0 0 20px;}
+.modal-card p.modal-sub{font-size:0.88rem; color:rgba(32,36,42,0.6); margin:0 0 20px;}
 .modal-card .field{margin-bottom:14px;}
 .modal-actions{display:flex; gap:10px; margin-top:8px;}
 .modal-actions .btn-search{flex:1;}
