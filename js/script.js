@@ -17,9 +17,35 @@ const YOUR_MARKUP_KR = 750; // din avance pr. person (mellem 500-1000 kr, sæt s
    Duffels "Places" endpoint for at dække alle verdens lufthavne.
 ------------------------------------------------------------ */
 const MOCK_RESULTS = [
-  { id: "off_1", airline: "Turkish Airlines", from: "CPH", to: "IST", duration: "3t 35m", stops: "Direkte", basePrice: 2140, currency: "DKK" },
-  { id: "off_2", airline: "SAS",              from: "CPH", to: "IST", duration: "5t 10m", stops: "1 mellemlanding", basePrice: 1890, currency: "DKK" },
-  { id: "off_3", airline: "Pegasus",          from: "CPH", to: "IST", duration: "4t 55m", stops: "1 mellemlanding", basePrice: 1640, currency: "DKK" },
+  {
+    id: "off_1", airline: "Turkish Airlines", from: "CPH", to: "IST",
+    duration: "3t 50m", stops: "Direkte", basePrice: 2140, currency: "DKK",
+    slices: [{
+      segments: [
+        { airline: "Turkish Airlines", flightNumber: "TK1758", from: "CPH", to: "IST", depTime: "07:15", arrTime: "11:05", duration: "3t 50m" },
+      ],
+    }],
+  },
+  {
+    id: "off_2", airline: "SAS", from: "CPH", to: "IST",
+    duration: "7t 20m", stops: "1 mellemlanding", basePrice: 1890, currency: "DKK",
+    slices: [{
+      segments: [
+        { airline: "SAS", flightNumber: "SK1602", from: "CPH", to: "FRA", depTime: "08:20", arrTime: "09:55", duration: "1t 35m" },
+        { airline: "Turkish Airlines", flightNumber: "TK1730", from: "FRA", to: "IST", depTime: "12:10", arrTime: "15:40", duration: "2t 30m", layoverBefore: "2t 15m ophold i Frankfurt (FRA)" },
+      ],
+    }],
+  },
+  {
+    id: "off_3", airline: "Pegasus", from: "CPH", to: "IST",
+    duration: "6t 25m", stops: "1 mellemlanding", basePrice: 1640, currency: "DKK",
+    slices: [{
+      segments: [
+        { airline: "Pegasus", flightNumber: "PC1145", from: "CPH", to: "WAW", depTime: "06:40", arrTime: "08:35", duration: "1t 55m" },
+        { airline: "Pegasus", flightNumber: "PC875", from: "WAW", to: "IST", depTime: "10:20", arrTime: "13:05", duration: "2t 45m", layoverBefore: "1t 45m ophold i Warszawa (WAW)" },
+      ],
+    }],
+  },
 ];
 
 const AIRPORTS = [
@@ -282,14 +308,75 @@ function renderFlip(price) {
 
 /* ------------------------------------------------------------
    startCheckout()
-   Viser først en formular for ALLE rejsendes oplysninger (krævet
-   af Duffel for at kunne booke billetten) — én sektion pr. voksen,
-   barn og spædbarn, ud fra antallet valgt i søgningen. Sender
-   derefter tilbud + alle passagerer til backend.
+   Viser FØRST en detaljeret rute-oversigt (afgangstider, evt.
+   mellemlanding/skift af fly) — så en formular for ALLE rejsendes
+   oplysninger, ud fra antallet valgt i søgningen.
 ------------------------------------------------------------ */
 function startCheckout(offerId, offers) {
   const offer = offers.find(o => o.id === offerId);
-  openPassengerModal(offer, lastSearchPax);
+  openFlightDetailsModal(offer);
+}
+
+function openFlightDetailsModal(offer) {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+    <div class="modal-card modal-card-wide">
+      <h3>Din rute</h3>
+      <p class="modal-sub">${offer.airline} · ${offer.duration} i alt · ${offer.stops}</p>
+      ${(offer.slices || []).map((slice, i) => buildItinerarySlice(slice, offer, i)).join("")}
+      <div class="itinerary-total">
+        <span>Samlet pris (${(YOUR_MARKUP_KR ? "inkl. service" : "")})</span>
+        <strong>${offer.basePrice + YOUR_MARKUP_KR} ${offer.currency || "DKK"}</strong>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-cancel">Annullér</button>
+        <button type="button" class="btn-search" id="continueToPassengers"><span>Fortsæt til oplysninger</span></button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector(".modal-cancel").addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector("#continueToPassengers").addEventListener("click", () => {
+    overlay.remove();
+    openPassengerModal(offer, lastSearchPax);
+  });
+}
+
+function buildItinerarySlice(slice, offer, sliceIndex) {
+  const label = sliceIndex === 0 ? "Udrejse" : "Hjemrejse";
+  const segmentsHtml = slice.segments.map((seg, i) => `
+    ${i > 0 ? buildLayoverBadge(seg) : ""}
+    <div class="segment-row">
+      <div class="segment-point">
+        <span class="segment-time">${seg.depTime}</span>
+        <span class="segment-airport">${seg.from}</span>
+      </div>
+      <div class="segment-mid">
+        <span class="segment-duration">${seg.duration}</span>
+        <div class="segment-line"></div>
+        <span class="segment-flight">${seg.airline} · ${seg.flightNumber}</span>
+      </div>
+      <div class="segment-point segment-point-end">
+        <span class="segment-time">${seg.arrTime}</span>
+        <span class="segment-airport">${seg.to}</span>
+      </div>
+    </div>
+  `).join("");
+
+  return `
+    <div class="itinerary-slice">
+      <div class="itinerary-slice-label">${label} · ${slice.segments[0].from} → ${slice.segments[slice.segments.length - 1].to}</div>
+      ${segmentsHtml}
+    </div>
+  `;
+}
+
+function buildLayoverBadge(seg) {
+  const text = seg.layoverBefore || `Skift fly`;
+  return `<div class="layover-badge">✈ ${text}</div>`;
 }
 
 function openPassengerModal(offer, pax) {
