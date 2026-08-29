@@ -66,12 +66,12 @@ a{color:inherit; text-decoration:none;}
 .hero{
   position:relative; padding:110px 0 40px; overflow:hidden;
   background:
-    linear-gradient(180deg, rgba(11,37,69,0.88) 0%, rgba(11,37,69,0.72) 55%, var(--paper) 100%),
+    linear-gradient(180deg, rgba(11,37,69,0.94) 0%, rgba(11,37,69,0.86) 55%, var(--paper) 100%),
     url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1600&q=70') center 30%/cover no-repeat;
 }
 .hero .eyebrow{color:var(--gold-2);}
-.hero h1{color:var(--white);}
-.hero-sub{color:rgba(255,255,255,0.82);}
+.hero h1{color:var(--white); text-shadow:0 2px 16px rgba(0,0,0,0.35);}
+.hero-sub{color:rgba(255,255,255,0.94); font-weight:500; text-shadow:0 1px 12px rgba(0,0,0,0.3);}
 .route-line{
   position:absolute; top:20px; left:0; width:100%; height:340px; z-index:0;
   opacity:0.5;
@@ -106,7 +106,7 @@ a{color:inherit; text-decoration:none;}
 }
 .hero h1 em{font-style:normal; color:var(--gold); position:relative;}
 .hero-sub{
-  font-size:1.05rem; line-height:1.6; color:rgba(11,37,69,0.72);
+  font-size:1.05rem; line-height:1.6;
   animation:riseIn .8s .12s cubic-bezier(.2,.8,.2,1) both;
 }
 @keyframes riseIn{ from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);} }
@@ -158,7 +158,7 @@ a{color:inherit; text-decoration:none;}
 .btn-search:hover svg{transform:translateX(3px);}
 
 /* RESULTS / SPLIT-FLAP BOARD */
-.results-section{padding:80px 0 40px;}
+.results-section{padding:56px 0 20px;}
 .results-head{text-align:center; max-width:560px; margin:0 auto 44px;}
 .results-head h2{font-family:var(--display); font-size:1.9rem; margin:0 0 10px;}
 .results-sub{color:rgba(11,37,69,0.62); margin:0;}
@@ -206,7 +206,7 @@ a{color:inherit; text-decoration:none;}
 .select-btn:hover{background:var(--ink); color:var(--white);}
 
 /* DESTINATIONS */
-.destinations{padding:70px 0 20px;}
+.destinations{padding:48px 0 8px;}
 .destinations-head{text-align:center; max-width:560px; margin:0 auto 40px;}
 .destinations-head h2{font-family:var(--display); font-size:1.9rem; margin:0 0 10px;}
 .destinations-head p{color:rgba(11,37,69,0.62); margin:0;}
@@ -231,10 +231,10 @@ a{color:inherit; text-decoration:none;}
 .destination-label .price{font-family:var(--mono); font-size:0.8rem; opacity:0.85;}
 
 /* HOW IT WORKS */
-.how{padding:80px 0; background:var(--ink); color:var(--white); border-radius:32px; margin:40px 20px;}
+.how{padding:56px 0; background:var(--ink); color:var(--white); border-radius:32px; margin:32px 20px;}
 .how .wrap{max-width:1080px;}
-.how h2{font-family:var(--display); font-size:2rem; text-align:center; margin:0 0 48px;}
-.how-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
+.how h2{font-family:var(--display); font-size:2rem; text-align:center; margin:0 0 36px;}
+.how-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
 .how-step{padding:28px; border:1px solid rgba(255,255,255,0.12); border-radius:16px; transition:transform .25s ease, border-color .25s ease;}
 .how-step:hover{transform:translateY(-4px); border-color:var(--gold);}
 .how-mark{
@@ -245,7 +245,7 @@ a{color:inherit; text-decoration:none;}
 .how-step p{font-size:0.92rem; line-height:1.55; color:rgba(255,255,255,0.68); margin:0;}
 
 /* TRUST */
-.trust{padding:80px 0;}
+.trust{padding:56px 0;}
 .trust-inner{display:grid; grid-template-columns:1.3fr 1fr; gap:48px; align-items:center;}
 .trust-text h2{font-family:var(--display); font-size:1.8rem; margin:0 0 16px;}
 .trust-text p{color:rgba(11,37,69,0.68); line-height:1.6;}
@@ -258,7 +258,7 @@ a{color:inherit; text-decoration:none;}
 .badge span{font-size:0.82rem; color:rgba(11,37,69,0.55);}
 
 /* FOOTER */
-.site-footer{padding:56px 0 40px; border-top:1px solid var(--line);}
+.site-footer{padding:40px 0 32px; border-top:1px solid var(--line);}
 .footer-inner{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:24px;}
 .footer-contact p{margin:0 0 6px; font-size:0.88rem; color:rgba(11,37,69,0.6);}
 .footer-contact a{font-family:var(--mono); font-weight:600; color:var(--ink); border-bottom:1px solid var(--gold);}
