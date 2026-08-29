@@ -214,7 +214,32 @@ function updatePaxSummary() {
 }
 
 let activeTab = "fly";
+let tripType = "roundtrip";
 let lastSearchPax = { adults: 4, children: 0, infants: 0 };
+
+const tripTypeToggle = document.getElementById("tripTypeToggle");
+const returnField = document.querySelector('[data-field="return"]');
+const returnInput = returnField.querySelector("input");
+
+tripTypeToggle.querySelectorAll(".trip-type-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    tripTypeToggle.querySelectorAll(".trip-type-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    tripType = btn.dataset.trip;
+    updateReturnFieldVisibility();
+  });
+});
+
+function updateReturnFieldVisibility() {
+  if (activeTab === "fly") {
+    tripTypeToggle.style.display = "flex";
+    returnField.style.display = tripType === "roundtrip" ? "flex" : "none";
+    if (tripType === "oneway") returnInput.value = "";
+  } else {
+    tripTypeToggle.style.display = "none";
+    returnField.style.display = "flex";
+  }
+}
 
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
@@ -224,12 +249,10 @@ tabs.forEach(tab => {
     activeTab = tab.dataset.tab;
     document.querySelector('[data-field="to"] label').textContent =
       activeTab === "hotel" ? "Destination" : "Til";
-    document.querySelector('[data-field="return"]').style.display =
-      activeTab === "fly" ? "none" : "flex";
+    updateReturnFieldVisibility();
   });
 });
-// default: skjul retur-felt for enkeltrejse-fly-visning, vis for hotel/pakke
-document.querySelector('[data-field="return"]').style.display = "none";
+updateReturnFieldVisibility();
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -274,10 +297,12 @@ function renderLoading() {
 
 function renderResults(offers, params) {
   resultsTitle.textContent = `${offers.length} tilbud fundet`;
-  resultsSub.textContent = `${params.from || "Afgang"} → ${params.to || "Destination"} · pris inkl. service`;
+  const totalPax = lastSearchPax.adults + lastSearchPax.children + lastSearchPax.infants;
+  resultsSub.textContent = `${params.from || "Afgang"} → ${params.to || "Destination"} · ${totalPax} rejsende · pris inkl. service`;
 
   board.innerHTML = offers.map((o, i) => {
-    const finalPrice = o.basePrice + YOUR_MARKUP_KR;
+    const totalPrice = o.basePrice + YOUR_MARKUP_KR * totalPax;
+    const perPersonPrice = Math.round(totalPrice / totalPax);
     return `
       <article class="flight-card" style="animation-delay:${i * 90}ms">
         <div>
@@ -288,8 +313,11 @@ function renderResults(offers, params) {
           </div>
           <div class="flight-meta">${o.airline} · ${o.duration} · ${o.stops}</div>
         </div>
-        <div class="flight-airline">${o.airline}<span>Én rejsende, tur/retur pris kan variere</span></div>
-        <div class="flip-price">${renderFlip(finalPrice)}<span class="unit">DKK</span></div>
+        <div class="flight-airline">${o.airline}<span>${totalPax} rejsende, tur/retur pris kan variere</span></div>
+        <div class="price-block">
+          <div class="flip-price">${renderFlip(totalPrice)}<span class="unit">DKK</span></div>
+          <div class="price-per-person">${perPersonPrice} DKK / person</div>
+        </div>
         <button class="select-btn" data-offer="${o.id}">Vælg og book →</button>
       </article>
     `;
@@ -318,6 +346,10 @@ function startCheckout(offerId, offers) {
 }
 
 function openFlightDetailsModal(offer) {
+  const totalPax = lastSearchPax.adults + lastSearchPax.children + lastSearchPax.infants;
+  const totalPrice = offer.basePrice + YOUR_MARKUP_KR * totalPax;
+  const perPersonPrice = Math.round(totalPrice / totalPax);
+
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `
@@ -326,8 +358,8 @@ function openFlightDetailsModal(offer) {
       <p class="modal-sub">${offer.airline} · ${offer.duration} i alt · ${offer.stops}</p>
       ${(offer.slices || []).map((slice, i) => buildItinerarySlice(slice, offer, i)).join("")}
       <div class="itinerary-total">
-        <span>Samlet pris (${(YOUR_MARKUP_KR ? "inkl. service" : "")})</span>
-        <strong>${offer.basePrice + YOUR_MARKUP_KR} ${offer.currency || "DKK"}</strong>
+        <span>${totalPax} rejsende · ${perPersonPrice} DKK / person</span>
+        <strong>${totalPrice} ${offer.currency || "DKK"}</strong>
       </div>
       <div class="modal-actions">
         <button type="button" class="modal-cancel">Annullér</button>
@@ -527,13 +559,15 @@ function collectPassengers(fd, pax) {
 }
 
 async function submitCheckout(offer, passengers) {
+  const totalPax = lastSearchPax.adults + lastSearchPax.children + lastSearchPax.infants;
+  const totalPrice = offer.basePrice + YOUR_MARKUP_KR * totalPax;
   try {
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         offerId: offer.id,
-        amount: (offer.basePrice + YOUR_MARKUP_KR) * 100,
+        amount: totalPrice * 100,
         currency: "dkk",
         passengers,
       }),
