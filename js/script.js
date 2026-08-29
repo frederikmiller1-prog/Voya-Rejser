@@ -174,6 +174,7 @@ function updatePaxSummary() {
 }
 
 let activeTab = "fly";
+let lastSearchPax = { adults: 4, children: 0, infants: 0 };
 
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
@@ -193,6 +194,11 @@ document.querySelector('[data-field="return"]').style.display = "none";
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(form).entries());
+  lastSearchPax = {
+    adults: parseInt(data.adults, 10) || 1,
+    children: parseInt(data.children, 10) || 0,
+    infants: parseInt(data.infants, 10) || 0,
+  };
   renderLoading();
   const offers = await fetchOffers(data);
   renderResults(offers, data);
@@ -262,39 +268,25 @@ function renderFlip(price) {
 
 /* ------------------------------------------------------------
    startCheckout()
-   Viser først en lille formular for passageroplysninger (krævet
-   af Duffel for at kunne booke billetten), og sender derefter
-   tilbud + passager til backend, som opretter Stripe-betaling.
+   Viser først en formular for ALLE rejsendes oplysninger (krævet
+   af Duffel for at kunne booke billetten) — én sektion pr. voksen,
+   barn og spædbarn, ud fra antallet valgt i søgningen. Sender
+   derefter tilbud + alle passagerer til backend.
 ------------------------------------------------------------ */
 function startCheckout(offerId, offers) {
   const offer = offers.find(o => o.id === offerId);
-  openPassengerModal(offer);
+  openPassengerModal(offer, lastSearchPax);
 }
 
-function openPassengerModal(offer) {
+function openPassengerModal(offer, pax) {
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `
     <div class="modal-card">
-      <h3>Dine oplysninger</h3>
-      <p class="modal-sub">Skal bruges til at booke billetten hos flyselskabet.</p>
+      <h3>Rejsendes oplysninger</h3>
+      <p class="modal-sub">Skal bruges til at booke billetterne hos flyselskabet.</p>
       <form id="passengerForm">
-        <div class="field">
-          <label>Fulde navn (som på pas)</label>
-          <input type="text" name="fullName" required placeholder="Anders Andersen">
-        </div>
-        <div class="field">
-          <label>E-mail</label>
-          <input type="email" name="email" required placeholder="dig@eksempel.dk">
-        </div>
-        <div class="field">
-          <label>Fødselsdato</label>
-          <input type="date" name="dob" required>
-        </div>
-        <div class="field">
-          <label>Telefon</label>
-          <input type="tel" name="phone" required placeholder="+45 12345678">
-        </div>
+        ${buildPassengerFields(pax)}
         <div class="modal-actions">
           <button type="button" class="modal-cancel">Annullér</button>
           <button type="submit" class="btn-search"><span>Gå til betaling</span></button>
@@ -309,12 +301,104 @@ function openPassengerModal(offer) {
 
   overlay.querySelector("#passengerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const passenger = Object.fromEntries(new FormData(e.target).entries());
-    await submitCheckout(offer, passenger);
+    const passengers = collectPassengers(new FormData(e.target), pax);
+    await submitCheckout(offer, passengers);
   });
 }
 
-async function submitCheckout(offer, passenger) {
+function buildPassengerFields(pax) {
+  let html = "";
+
+  for (let i = 0; i < pax.adults; i++) {
+    html += `
+      <div class="passenger-group">
+        <h4>Voksen ${i + 1}${i === 0 ? " (kontaktperson)" : ""}</h4>
+        <div class="field">
+          <label>Fulde navn (som på pas)</label>
+          <input type="text" name="adult_${i}_name" required placeholder="Anders Andersen">
+        </div>
+        <div class="field">
+          <label>Fødselsdato</label>
+          <input type="date" name="adult_${i}_dob" required>
+        </div>
+        ${i === 0 ? `
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" name="contactEmail" required placeholder="dig@eksempel.dk">
+        </div>
+        <div class="field">
+          <label>Telefon</label>
+          <input type="tel" name="contactPhone" required placeholder="+45 12345678">
+        </div>` : ""}
+      </div>
+    `;
+  }
+
+  for (let i = 0; i < pax.children; i++) {
+    html += `
+      <div class="passenger-group">
+        <h4>Barn ${i + 1} (2-11 år)</h4>
+        <div class="field">
+          <label>Fulde navn</label>
+          <input type="text" name="child_${i}_name" required placeholder="Barnets fulde navn">
+        </div>
+        <div class="field">
+          <label>Fødselsdato</label>
+          <input type="date" name="child_${i}_dob" required>
+        </div>
+      </div>
+    `;
+  }
+
+  for (let i = 0; i < pax.infants; i++) {
+    html += `
+      <div class="passenger-group">
+        <h4>Spædbarn ${i + 1} (0-1 år)</h4>
+        <div class="field">
+          <label>Fulde navn</label>
+          <input type="text" name="infant_${i}_name" required placeholder="Spædbarnets fulde navn">
+        </div>
+        <div class="field">
+          <label>Fødselsdato</label>
+          <input type="date" name="infant_${i}_dob" required>
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
+}
+
+/* ------------------------------------------------------------
+   collectPassengers()
+   Samler alle felterne til én liste i PRÆCIS samme rækkefølge
+   som passengers blev bygget i api/search.js (voksne, så børn,
+   så spædbørn) — det er den rækkefølge api/webhook.js senere
+   matcher mod de rigtige Duffel-passager-id'er med.
+------------------------------------------------------------ */
+function collectPassengers(fd, pax) {
+  const passengers = [];
+
+  for (let i = 0; i < pax.adults; i++) {
+    passengers.push({
+      type: "adult",
+      name: fd.get(`adult_${i}_name`),
+      dob: fd.get(`adult_${i}_dob`),
+      email: i === 0 ? fd.get("contactEmail") : undefined,
+      phone: i === 0 ? fd.get("contactPhone") : undefined,
+    });
+  }
+  for (let i = 0; i < pax.children; i++) {
+    passengers.push({ type: "child", name: fd.get(`child_${i}_name`), dob: fd.get(`child_${i}_dob`) });
+  }
+  for (let i = 0; i < pax.infants; i++) {
+    passengers.push({ type: "infant", name: fd.get(`infant_${i}_name`), dob: fd.get(`infant_${i}_dob`) });
+  }
+
+  return passengers;
+}
+
+async function submitCheckout(offer, passengers) {
   try {
     const res = await fetch("/api/checkout", {
       method: "POST",
@@ -323,7 +407,7 @@ async function submitCheckout(offer, passenger) {
         offerId: offer.id,
         amount: (offer.basePrice + YOUR_MARKUP_KR) * 100,
         currency: "dkk",
-        passenger,
+        passengers,
       }),
     });
     const { url } = await res.json();
