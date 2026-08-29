@@ -104,6 +104,20 @@ setupAirportAutocomplete("fromInput", "fromCode", "fromSuggestions");
 setupAirportAutocomplete("toInput", "toCode", "toSuggestions");
 
 /* ------------------------------------------------------------
+   DESTINATIONSKORT — klik udfylder "Til"-feltet og søger med det samme
+------------------------------------------------------------ */
+document.querySelectorAll(".destination-card").forEach(card => {
+  card.addEventListener("click", () => {
+    const code = card.dataset.code;
+    const city = card.dataset.city;
+    document.getElementById("toInput").value = `${city} (${code})`;
+    document.getElementById("toCode").value = code;
+    document.getElementById("soeg").scrollIntoView({ behavior: "smooth", block: "start" });
+    form.requestSubmit();
+  });
+});
+
+/* ------------------------------------------------------------
    PASSAGER-VÆLGER — voksne / børn / spædbørn
    Aldersgrænser følger IATA/Duffels standard:
    voksen = 12 år+, barn = 2-11 år, spædbarn = 0-1 år (sidder på skød).
