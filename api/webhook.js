@@ -42,10 +42,14 @@ export default async function handler(req, res) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { offerId, passengers } = session.metadata;
+    const { offerId, passengerCount } = session.metadata;
+    const passengers = [];
+    for (let i = 0; i < parseInt(passengerCount, 10); i++) {
+      passengers.push(JSON.parse(session.metadata[`passenger_${i}`]));
+    }
 
     try {
-      await bookWithDuffel({ offerId, passengers: JSON.parse(passengers) });
+      await bookWithDuffel({ offerId, passengers });
       console.log(`Billetter booket hos Duffel for tilbud ${offerId}`);
     } catch (err) {
       // VIGTIGT: kunden har betalt, men billetten kunne ikke bookes.
@@ -89,11 +93,21 @@ async function bookWithDuffel({ offerId, passengers }) {
       given_name: firstName,
       family_name: rest.join(" ") || firstName,
       born_on: info.dob,
-      title: "mr",
-      gender: "m",
+      title: info.title || "mr",
+      gender: info.gender || "m",
     };
     if (info.email) p.email = info.email;
     if (info.phone) p.phone_number = info.phone;
+
+    // Pasoplysninger — påkrævet af flyselskaberne på internationale ruter
+    if (info.passport && info.passportExpiry && info.nationality) {
+      p.identity_documents = [{
+        type: "passport",
+        unique_identifier: info.passport,
+        expires_on: info.passportExpiry,
+        issuing_country_code: info.nationality,
+      }];
+    }
     return p;
   });
 
