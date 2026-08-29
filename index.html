@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voya Rejser — Fly, Hoteller & Pakkerejser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+<div class="skyline" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="#" class="logo">VOYA<span>.</span></a>
+    <nav class="main-nav">
+      <a href="#soeg">Fly</a>
+      <a href="#soeg">Hoteller</a>
+      <a href="#soeg">Pakkerejser</a>
+      <a href="#saadan">Sådan foregår det</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <svg class="route-line" viewBox="0 0 1200 400" preserveAspectRatio="none" aria-hidden="true">
+      <path id="routePath" d="M -20 320 C 200 260, 380 380, 560 260 C 740 150, 900 220, 1220 90" />
+      <circle class="route-dot" r="5" cx="-20" cy="320"></circle>
+      <circle class="airport-dot" r="4" cx="-20" cy="320"></circle>
+      <circle class="airport-dot" r="4" cx="1220" cy="90"></circle>
+    </svg>
+
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Personlig rejseservice — ikke et anonymt bookingsite</p>
+      <h1>Din næste rejse,<br>booket <em>direkte</em> hos mig.</h1>
+      <p class="hero-sub">Fly, hoteller og pakkerejser til skarpe priser — søgt live, booket trygt med Stripe, og med et rigtigt menneske i den anden ende, hvis noget skal ændres.</p>
+    </div>
+
+    <!-- SEARCH WIDGET -->
+    <div class="wrap">
+      <div class="search-card" id="soeg">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="fly" role="tab" aria-selected="true">Fly</button>
+          <button class="tab" data-tab="hotel" role="tab" aria-selected="false">Hotel</button>
+          <button class="tab" data-tab="pakke" role="tab" aria-selected="false">Pakkerejse</button>
+        </div>
+
+        <form id="searchForm" class="search-form">
+          <div class="field" data-field="from">
+            <label>Fra</label>
+            <input type="text" name="from" placeholder="København (CPH)" value="København (CPH)">
+          </div>
+          <div class="field" data-field="to">
+            <label>Til</label>
+            <input type="text" name="to" placeholder="Hvor skal du hen?" value="Istanbul (IST)">
+          </div>
+          <div class="field" data-field="depart">
+            <label>Afrejse</label>
+            <input type="date" name="depart">
+          </div>
+          <div class="field return-field" data-field="return">
+            <label>Hjemrejse</label>
+            <input type="date" name="return">
+          </div>
+          <div class="field pax-field" data-field="pax">
+            <label>Rejsende</label>
+            <select name="pax">
+              <option>1 voksen</option>
+              <option>2 voksne</option>
+              <option>3 voksne</option>
+              <option selected>4 voksne</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-search">
+            <span>Søg priser</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="results-section" id="resultater">
+    <div class="wrap">
+      <div class="results-head">
+        <h2 id="resultsTitle">Foreslåede afgange</h2>
+        <p class="results-sub" id="resultsSub">Priser opdateres, når du søger — vist herunder er eksempler på, hvordan det ser ud.</p>
+      </div>
+
+      <div class="board" id="resultsBoard">
+        <!-- filled by js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="saadan">
+    <div class="wrap">
+      <h2>Sådan foregår det</h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <span class="how-mark">Søg</span>
+          <h3>Du søger fly, hotel eller pakke</h3>
+          <p>Priserne hentes direkte gennem Duffel — de samme flyselskaber og hoteller som de store bookingsites bruger.</p>
+        </div>
+        <div class="how-step">
+          <span class="how-mark">Bekræft</span>
+          <h3>Jeg bekræfter og sender betalingslink</h3>
+          <p>Du betaler trygt med kort via Stripe. Ingen skjulte gebyrer — prisen du ser, er prisen du betaler.</p>
+        </div>
+        <div class="how-step">
+          <span class="how-mark">Rejs</span>
+          <h3>Du får billetter og bekræftelse med det samme</h3>
+          <p>Skal noget ændres undervejs, skriver du bare til mig direkte — ikke en robot.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="trust">
+    <div class="wrap trust-inner">
+      <div class="trust-text">
+        <h2>Hvorfor booke gennem mig frem for et stort bookingsite?</h2>
+        <p>Fordi der er et menneske bag hver eneste booking. Jeg finder de bedste kombinationer af fly, hotel og pakkerejser til dig — og er der stadig, hvis noget skal ændres efter du har booket.</p>
+      </div>
+      <div class="trust-badges">
+        <div class="badge"><strong>Sikker betaling</strong><span>Via Stripe</span></div>
+        <div class="badge"><strong>Live priser</strong><span>Via Duffel</span></div>
+        <div class="badge"><strong>Personlig service</strong><span>Direkte kontakt</span></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" id="kontakt">
+  <div class="wrap footer-inner">
+    <div>
+      <div class="logo">VOYA<span>.</span></div>
+      <p>Rejser booket personligt — fly, hoteller og pakkerejser.</p>
+    </div>
+    <div class="footer-contact">
+      <p>Skriv til mig for at booke eller høre mere:</p>
+      <a href="mailto:book@voyarejser.dk">book@voyarejser.dk</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>

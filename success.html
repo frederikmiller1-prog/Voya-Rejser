@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tak for din booking — Voya Rejser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .success-wrap{
+    min-height:80vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px 24px;
+  }
+  .success-icon{
+    width:64px; height:64px; border-radius:50%; background:var(--ink); color:var(--white);
+    display:flex; align-items:center; justify-content:center; margin-bottom:24px;
+    animation:riseIn .5s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .success-wrap h1{font-family:var(--display); font-size:2rem; margin:0 0 12px;}
+  .success-wrap p{color:rgba(11,37,69,0.65); max-width:440px; line-height:1.6;}
+  .success-wrap a{margin-top:24px; font-weight:600; border-bottom:1px solid var(--gold);}
+</style>
+</head>
+<body>
+  <div class="skyline"></div>
+  <div class="success-wrap">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1>Betalingen er gennemført</h1>
+    <p>Tak for din booking! Du modtager en bekræftelse med billet og alle detaljer på din e-mail inden for få minutter. Skal noget ændres, så skriv endelig direkte til mig.</p>
+    <a href="mailto:book@voyarejser.dk">book@voyarejser.dk</a>
+  </div>
+</body>
+</html>

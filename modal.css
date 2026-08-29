@@ -1,0 +1,23 @@
+
+/* PASSENGER MODAL */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(11,37,69,0.55);
+  display:flex; align-items:center; justify-content:center; z-index:100;
+  padding:20px; opacity:0; animation:fadeInOverlay .2s ease forwards;
+}
+@keyframes fadeInOverlay{ to{opacity:1;} }
+.modal-card{
+  background:var(--white); border-radius:18px; padding:32px;
+  max-width:440px; width:100%; box-shadow:0 30px 70px -20px rgba(11,37,69,0.4);
+  animation:riseIn .3s cubic-bezier(.2,.8,.2,1) both;
+}
+.modal-card h3{font-family:var(--display); font-size:1.3rem; margin:0 0 6px;}
+.modal-card p.modal-sub{font-size:0.88rem; color:rgba(11,37,69,0.6); margin:0 0 20px;}
+.modal-card .field{margin-bottom:14px;}
+.modal-actions{display:flex; gap:10px; margin-top:8px;}
+.modal-actions .btn-search{flex:1;}
+.modal-cancel{
+  background:none; border:1px solid var(--line); color:var(--ink);
+  border-radius:10px; padding:12px 18px; font-weight:600; cursor:pointer;
+}
+.modal-cancel:hover{background:var(--paper);}
