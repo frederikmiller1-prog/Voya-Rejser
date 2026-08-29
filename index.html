@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/modal.css">
+<link rel="stylesheet" href="css/autocomplete.css">
 </head>
 <body>
 
@@ -53,13 +54,17 @@
         </div>
 
         <form id="searchForm" class="search-form">
-          <div class="field" data-field="from">
+          <div class="field autocomplete-field" data-field="from">
             <label>Fra</label>
-            <input type="text" name="from" placeholder="København (CPH)" value="København (CPH)">
+            <input type="text" name="from" id="fromInput" placeholder="By eller lufthavn" value="København (CPH)" autocomplete="off">
+            <input type="hidden" name="fromCode" id="fromCode" value="CPH">
+            <ul class="airport-suggestions" id="fromSuggestions"></ul>
           </div>
-          <div class="field" data-field="to">
+          <div class="field autocomplete-field" data-field="to">
             <label>Til</label>
-            <input type="text" name="to" placeholder="Hvor skal du hen?" value="Istanbul (IST)">
+            <input type="text" name="to" id="toInput" placeholder="Hvor skal du hen?" value="Istanbul (IST)" autocomplete="off">
+            <input type="hidden" name="toCode" id="toCode" value="IST">
+            <ul class="airport-suggestions" id="toSuggestions"></ul>
           </div>
           <div class="field" data-field="depart">
             <label>Afrejse</label>
@@ -71,12 +76,50 @@
           </div>
           <div class="field pax-field" data-field="pax">
             <label>Rejsende</label>
-            <select name="pax">
-              <option>1 voksen</option>
-              <option>2 voksne</option>
-              <option>3 voksne</option>
-              <option selected>4 voksne</option>
-            </select>
+            <button type="button" class="pax-trigger" id="paxTrigger">
+              <span id="paxSummary">4 voksne</span>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <input type="hidden" name="adults" id="adultsCount" value="4">
+            <input type="hidden" name="children" id="childrenCount" value="0">
+            <input type="hidden" name="infants" id="infantsCount" value="0">
+
+            <div class="pax-popover" id="paxPopover">
+              <div class="pax-row">
+                <div class="pax-row-text">
+                  <strong>Voksne</strong>
+                  <span>12 år og opefter</span>
+                </div>
+                <div class="pax-stepper" data-type="adults">
+                  <button type="button" class="pax-btn" data-action="minus">−</button>
+                  <span class="pax-value">4</span>
+                  <button type="button" class="pax-btn" data-action="plus">+</button>
+                </div>
+              </div>
+              <div class="pax-row">
+                <div class="pax-row-text">
+                  <strong>Børn</strong>
+                  <span>2-11 år</span>
+                </div>
+                <div class="pax-stepper" data-type="children">
+                  <button type="button" class="pax-btn" data-action="minus">−</button>
+                  <span class="pax-value">0</span>
+                  <button type="button" class="pax-btn" data-action="plus">+</button>
+                </div>
+              </div>
+              <div class="pax-row">
+                <div class="pax-row-text">
+                  <strong>Spædbørn</strong>
+                  <span>0-1 år, sidder på skød</span>
+                </div>
+                <div class="pax-stepper" data-type="infants">
+                  <button type="button" class="pax-btn" data-action="minus">−</button>
+                  <span class="pax-value">0</span>
+                  <button type="button" class="pax-btn" data-action="plus">+</button>
+                </div>
+              </div>
+              <button type="button" class="pax-done" id="paxDone">Færdig</button>
+            </div>
           </div>
           <button type="submit" class="btn-search">
             <span>Søg priser</span>
