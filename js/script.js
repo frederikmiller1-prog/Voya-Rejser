@@ -10,10 +10,45 @@
 
 const YOUR_MARKUP_KR = 750; // din avance pr. person (mellem 500-1000 kr, sæt selv)
 
+/* ------------------------------------------------------------
+   Lufthavne til autocomplete. Dette er en kort liste med de
+   mest relevante lufthavne. Når Duffel-nøglen er koblet til
+   (se README.md), kan denne udskiftes med et rigtigt opslag mod
+   Duffels "Places" endpoint for at dække alle verdens lufthavne.
+------------------------------------------------------------ */
 const MOCK_RESULTS = [
   { id: "off_1", airline: "Turkish Airlines", from: "CPH", to: "IST", duration: "3t 35m", stops: "Direkte", basePrice: 2140, currency: "DKK" },
   { id: "off_2", airline: "SAS",              from: "CPH", to: "IST", duration: "5t 10m", stops: "1 mellemlanding", basePrice: 1890, currency: "DKK" },
   { id: "off_3", airline: "Pegasus",          from: "CPH", to: "IST", duration: "4t 55m", stops: "1 mellemlanding", basePrice: 1640, currency: "DKK" },
+];
+
+const AIRPORTS = [
+  { code: "CPH", city: "København", country: "Danmark" },
+  { code: "BLL", city: "Billund", country: "Danmark" },
+  { code: "AAL", city: "Aalborg", country: "Danmark" },
+  { code: "AAR", city: "Aarhus", country: "Danmark" },
+  { code: "IST", city: "Istanbul", country: "Tyrkiet" },
+  { code: "SAW", city: "Istanbul (Sabiha Gökçen)", country: "Tyrkiet" },
+  { code: "AYT", city: "Antalya", country: "Tyrkiet" },
+  { code: "DXB", city: "Dubai", country: "Forenede Arabiske Emirater" },
+  { code: "JED", city: "Jeddah", country: "Saudi-Arabien" },
+  { code: "MED", city: "Medina", country: "Saudi-Arabien" },
+  { code: "RUH", city: "Riyadh", country: "Saudi-Arabien" },
+  { code: "CAI", city: "Cairo", country: "Egypten" },
+  { code: "LHR", city: "London (Heathrow)", country: "Storbritannien" },
+  { code: "CDG", city: "Paris (Charles de Gaulle)", country: "Frankrig" },
+  { code: "BCN", city: "Barcelona", country: "Spanien" },
+  { code: "MAD", city: "Madrid", country: "Spanien" },
+  { code: "FCO", city: "Rom", country: "Italien" },
+  { code: "AMS", city: "Amsterdam", country: "Holland" },
+  { code: "FRA", city: "Frankfurt", country: "Tyskland" },
+  { code: "BER", city: "Berlin", country: "Tyskland" },
+  { code: "OSL", city: "Oslo", country: "Norge" },
+  { code: "ARN", city: "Stockholm", country: "Sverige" },
+  { code: "BKK", city: "Bangkok", country: "Thailand" },
+  { code: "DPS", city: "Bali", country: "Indonesien" },
+  { code: "JFK", city: "New York", country: "USA" },
+  { code: "IKA", city: "Teheran", country: "Iran" },
 ];
 
 const board = document.getElementById("resultsBoard");
@@ -21,6 +56,122 @@ const resultsTitle = document.getElementById("resultsTitle");
 const resultsSub = document.getElementById("resultsSub");
 const form = document.getElementById("searchForm");
 const tabs = document.querySelectorAll(".tab");
+
+/* ------------------------------------------------------------
+   AUTOCOMPLETE — Fra/Til
+------------------------------------------------------------ */
+function setupAirportAutocomplete(inputId, hiddenId, listId) {
+  const input = document.getElementById(inputId);
+  const hidden = document.getElementById(hiddenId);
+  const list = document.getElementById(listId);
+
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { list.classList.remove("open"); return; }
+
+    const matches = AIRPORTS.filter(a =>
+      a.city.toLowerCase().includes(q) ||
+      a.code.toLowerCase().includes(q) ||
+      a.country.toLowerCase().includes(q)
+    ).slice(0, 6);
+
+    if (matches.length === 0) {
+      list.innerHTML = `<li class="empty">Ingen lufthavne fundet</li>`;
+    } else {
+      list.innerHTML = matches.map(a => `
+        <li data-code="${a.code}" data-city="${a.city}">
+          <span><span class="city">${a.city}</span> <span class="country">${a.country}</span></span>
+          <span class="code">${a.code}</span>
+        </li>
+      `).join("");
+    }
+    list.classList.add("open");
+  });
+
+  list.addEventListener("click", (e) => {
+    const li = e.target.closest("li[data-code]");
+    if (!li) return;
+    input.value = `${li.dataset.city} (${li.dataset.code})`;
+    hidden.value = li.dataset.code;
+    list.classList.remove("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && !list.contains(e.target)) list.classList.remove("open");
+  });
+}
+setupAirportAutocomplete("fromInput", "fromCode", "fromSuggestions");
+setupAirportAutocomplete("toInput", "toCode", "toSuggestions");
+
+/* ------------------------------------------------------------
+   PASSAGER-VÆLGER — voksne / børn / spædbørn
+   Aldersgrænser følger IATA/Duffels standard:
+   voksen = 12 år+, barn = 2-11 år, spædbarn = 0-1 år (sidder på skød).
+------------------------------------------------------------ */
+const paxCounts = { adults: 4, children: 0, infants: 0 };
+const paxTrigger = document.getElementById("paxTrigger");
+const paxPopover = document.getElementById("paxPopover");
+const paxSummary = document.getElementById("paxSummary");
+
+paxTrigger.addEventListener("click", () => paxPopover.classList.toggle("open"));
+document.getElementById("paxDone").addEventListener("click", () => paxPopover.classList.remove("open"));
+document.addEventListener("click", (e) => {
+  if (!paxTrigger.contains(e.target) && !paxPopover.contains(e.target)) paxPopover.classList.remove("open");
+});
+
+document.querySelectorAll(".pax-stepper").forEach(stepper => {
+  const type = stepper.dataset.type;
+  const valueEl = stepper.querySelector(".pax-value");
+  const minusBtn = stepper.querySelector('[data-action="minus"]');
+  const plusBtn = stepper.querySelector('[data-action="plus"]');
+
+  minusBtn.addEventListener("click", () => updatePax(type, -1, valueEl));
+  plusBtn.addEventListener("click", () => updatePax(type, 1, valueEl));
+});
+
+function updatePax(type, delta, valueEl) {
+  const min = type === "adults" ? 1 : 0;
+  const max = type === "adults" ? 9 : 6;
+  let next = paxCounts[type] + delta;
+  next = Math.max(min, Math.min(max, next));
+
+  // Der kan højst være ét spædbarn pr. voksen (sidder på skødet)
+  if (type === "infants" && next > paxCounts.adults) next = paxCounts.adults;
+
+  paxCounts[type] = next;
+  valueEl.textContent = next;
+  document.getElementById(`${type}Count`).value = next;
+
+  // Hvis antal voksne sættes ned, kan der ikke være flere spædbørn end voksne
+  if (type === "adults" && paxCounts.infants > next) {
+    paxCounts.infants = next;
+    document.getElementById("infantsCount").value = next;
+    document.querySelector('.pax-stepper[data-type="infants"] .pax-value').textContent = next;
+  }
+
+  updatePaxButtons();
+  updatePaxSummary();
+}
+
+function updatePaxButtons() {
+  document.querySelectorAll(".pax-stepper").forEach(stepper => {
+    const type = stepper.dataset.type;
+    const min = type === "adults" ? 1 : 0;
+    const max = type === "adults" ? 9 : 6;
+    stepper.querySelector('[data-action="minus"]').disabled = paxCounts[type] <= min;
+    stepper.querySelector('[data-action="plus"]').disabled =
+      paxCounts[type] >= max || (type === "infants" && paxCounts.infants >= paxCounts.adults);
+  });
+}
+updatePaxButtons();
+
+function updatePaxSummary() {
+  const parts = [];
+  if (paxCounts.adults) parts.push(`${paxCounts.adults} voksne`);
+  if (paxCounts.children) parts.push(`${paxCounts.children} børn`);
+  if (paxCounts.infants) parts.push(`${paxCounts.infants} spædbørn`);
+  paxSummary.textContent = parts.join(", ") || "Vælg rejsende";
+}
 
 let activeTab = "fly";
 
