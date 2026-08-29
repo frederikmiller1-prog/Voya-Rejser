@@ -8,7 +8,8 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { from, to, depart, return: returnDate, pax, type } = req.body;
+  const { fromCode, toCode, depart, return: returnDate, adults, children, infants } = req.body;
+  const from = fromCode, to = toCode;
 
   try {
     // Duffel kræver først et "offer request", derefter henter man tilbud (offers)
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
             { origin: from, destination: to, departure_date: depart },
             ...(returnDate ? [{ origin: to, destination: from, departure_date: returnDate }] : []),
           ],
-          passengers: Array.from({ length: parsePaxCount(pax) }, () => ({ type: "adult" })),
+          passengers: buildPassengers(adults, children, infants),
           cabin_class: "economy",
         },
       }),
@@ -64,7 +65,25 @@ export default async function handler(req, res) {
   }
 }
 
-function parsePaxCount(paxLabel) {
-  const match = String(paxLabel || "1").match(/\d+/);
-  return match ? parseInt(match[0], 10) : 1;
+/* ------------------------------------------------------------
+   buildPassengers()
+   Aldersgrænser følger IATA/Duffels standard:
+   - voksen (adult): 12 år og opefter — kræver ikke en angivet alder
+   - barn (child): 2-11 år — Duffel kræver en præcis alder, ikke kun typen
+   - spædbarn (infant): 0-1 år, sidder på skødet af en voksen
+   Vi bruger her en repræsentativ alder pr. gruppe (8 år for børn, 1 år
+   for spædbørn) til selve pris-søgningen. De helt præcise fødselsdatoer
+   indsamles i passager-formularen ved selve bookingen (se api/webhook.js),
+   så den endelige billet bookes med korrekt alder.
+------------------------------------------------------------ */
+function buildPassengers(adults, children, infants) {
+  const a = parseInt(adults, 10) || 1;
+  const c = parseInt(children, 10) || 0;
+  const i = parseInt(infants, 10) || 0;
+
+  return [
+    ...Array.from({ length: a }, () => ({ type: "adult" })),
+    ...Array.from({ length: c }, () => ({ age: 8 })),
+    ...Array.from({ length: i }, () => ({ age: 1 })),
+  ];
 }
