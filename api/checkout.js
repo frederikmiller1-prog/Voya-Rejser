@@ -35,14 +35,10 @@ export default async function handler(req, res) {
       success_url: `${process.env.SITE_URL}/success.html?offer=${offerId}`,
       cancel_url: `${process.env.SITE_URL}/#soeg`,
       // Gemmes her, så webhook'en (api/webhook.js) kan booke billetterne
-      // hos Duffel, når betalingen er bekræftet. NB: Stripe metadata-værdier
-      // er begrænset til 500 tegn — ved meget store rejsegrupper (7-8+
-      // personer) kan det være nødvendigt at gemme passagerlisten et andet
-      // sted (fx en lille database) i stedet for direkte i metadata.
-      metadata: {
-        offerId,
-        passengers: JSON.stringify(passengers),
-      },
+      // hos Duffel, når betalingen er bekræftet. Stripe tillader kun
+      // 500 tegn pr. metadata-felt, så hver passager (med navn, pas,
+      // nationalitet osv.) gemmes i sit eget felt i stedet for én stor liste.
+      metadata: buildPassengerMetadata(offerId, passengers),
     });
 
     res.status(200).json({ url: session.url });
@@ -50,4 +46,12 @@ export default async function handler(req, res) {
     console.error(err);
     res.status(500).json({ error: "Kunne ikke oprette betaling." });
   }
+}
+
+function buildPassengerMetadata(offerId, passengers) {
+  const metadata = { offerId, passengerCount: String(passengers.length) };
+  passengers.forEach((p, i) => {
+    metadata[`passenger_${i}`] = JSON.stringify(p);
+  });
+  return metadata;
 }
