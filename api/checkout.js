@@ -4,6 +4,11 @@
 // den samlede pris kunden ser og betaler, ikke kun flybilletprisen.
 //
 // Sæt STRIPE_SECRET_KEY i Vercel under Environment Variables.
+//
+// VIGTIGT: MobilePay skal aktiveres i din Stripe-konto, før det reelt
+// dukker op som betalingsmulighed — gå til Stripe Dashboard → Settings
+// → Payment methods → find MobilePay → Turn on. Koden her er klar,
+// men uden det trin vises kun kort ved betaling.
 
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -17,7 +22,7 @@ export default async function handler(req, res) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "mobilepay"],
       customer_email: contact.email,
       line_items: [
         {
