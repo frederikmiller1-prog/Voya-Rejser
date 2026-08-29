@@ -306,67 +306,94 @@ function openPassengerModal(offer, pax) {
   });
 }
 
+const NATIONALITIES = [
+  { code: "DK", label: "Dansk" },
+  { code: "SE", label: "Svensk" },
+  { code: "NO", label: "Norsk" },
+  { code: "DE", label: "Tysk" },
+  { code: "GB", label: "Britisk" },
+  { code: "TR", label: "Tyrkisk" },
+  { code: "SA", label: "Saudisk" },
+  { code: "AE", label: "Emiratisk" },
+  { code: "PK", label: "Pakistansk" },
+  { code: "SO", label: "Somalisk" },
+  { code: "IQ", label: "Irakisk" },
+  { code: "MA", label: "Marokkansk" },
+];
+
 function buildPassengerFields(pax) {
   let html = "";
 
   for (let i = 0; i < pax.adults; i++) {
-    html += `
-      <div class="passenger-group">
-        <h4>Voksen ${i + 1}${i === 0 ? " (kontaktperson)" : ""}</h4>
-        <div class="field">
-          <label>Fulde navn (som på pas)</label>
-          <input type="text" name="adult_${i}_name" required placeholder="Anders Andersen">
-        </div>
-        <div class="field">
-          <label>Fødselsdato</label>
-          <input type="date" name="adult_${i}_dob" required>
-        </div>
-        ${i === 0 ? `
-        <div class="field">
-          <label>E-mail</label>
-          <input type="email" name="contactEmail" required placeholder="dig@eksempel.dk">
-        </div>
-        <div class="field">
-          <label>Telefon</label>
-          <input type="tel" name="contactPhone" required placeholder="+45 12345678">
-        </div>` : ""}
-      </div>
-    `;
+    html += buildPassengerGroup("adult", i, `Voksen ${i + 1}${i === 0 ? " (kontaktperson)" : ""}`, i === 0);
   }
-
   for (let i = 0; i < pax.children; i++) {
-    html += `
-      <div class="passenger-group">
-        <h4>Barn ${i + 1} (2-11 år)</h4>
-        <div class="field">
-          <label>Fulde navn</label>
-          <input type="text" name="child_${i}_name" required placeholder="Barnets fulde navn">
-        </div>
-        <div class="field">
-          <label>Fødselsdato</label>
-          <input type="date" name="child_${i}_dob" required>
-        </div>
-      </div>
-    `;
+    html += buildPassengerGroup("child", i, `Barn ${i + 1} (2-11 år)`, false);
   }
-
   for (let i = 0; i < pax.infants; i++) {
-    html += `
-      <div class="passenger-group">
-        <h4>Spædbarn ${i + 1} (0-1 år)</h4>
-        <div class="field">
-          <label>Fulde navn</label>
-          <input type="text" name="infant_${i}_name" required placeholder="Spædbarnets fulde navn">
-        </div>
-        <div class="field">
-          <label>Fødselsdato</label>
-          <input type="date" name="infant_${i}_dob" required>
-        </div>
-      </div>
-    `;
+    html += buildPassengerGroup("infant", i, `Spædbarn ${i + 1} (0-1 år)`, false);
   }
 
   return html;
+}
+
+function buildPassengerGroup(type, i, title, isContact) {
+  const p = `${type}_${i}`;
+  return `
+    <div class="passenger-group">
+      <h4>${title}</h4>
+      <div class="field">
+        <label>Fulde navn (som på pas)</label>
+        <input type="text" name="${p}_name" required placeholder="${type === "adult" ? "Anders Andersen" : "Fulde navn"}">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Titel</label>
+          <select name="${p}_title">
+            <option value="mr">Hr.</option>
+            <option value="mrs">Fru</option>
+            <option value="ms">Frøken</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Køn</label>
+          <select name="${p}_gender">
+            <option value="m">Mand</option>
+            <option value="f">Kvinde</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Fødselsdato</label>
+        <input type="date" name="${p}_dob" required>
+      </div>
+      <div class="field">
+        <label>Nationalitet</label>
+        <select name="${p}_nationality" required>
+          ${NATIONALITIES.map(n => `<option value="${n.code}">${n.label}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Pasnummer</label>
+          <input type="text" name="${p}_passport" required placeholder="fx PA1234567">
+        </div>
+        <div class="field">
+          <label>Pas udløber</label>
+          <input type="date" name="${p}_passportExpiry" required>
+        </div>
+      </div>
+      ${isContact ? `
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" name="contactEmail" required placeholder="dig@eksempel.dk">
+      </div>
+      <div class="field">
+        <label>Telefon</label>
+        <input type="tel" name="contactPhone" required placeholder="+45 12345678">
+      </div>` : ""}
+    </div>
+  `;
 }
 
 /* ------------------------------------------------------------
@@ -378,22 +405,22 @@ function buildPassengerFields(pax) {
 ------------------------------------------------------------ */
 function collectPassengers(fd, pax) {
   const passengers = [];
+  const readGroup = (type, i, extra) => ({
+    type: extra,
+    name: fd.get(`${type}_${i}_name`),
+    dob: fd.get(`${type}_${i}_dob`),
+    title: fd.get(`${type}_${i}_title`),
+    gender: fd.get(`${type}_${i}_gender`),
+    nationality: fd.get(`${type}_${i}_nationality`),
+    passport: fd.get(`${type}_${i}_passport`),
+    passportExpiry: fd.get(`${type}_${i}_passportExpiry`),
+    email: type === "adult" && i === 0 ? fd.get("contactEmail") : undefined,
+    phone: type === "adult" && i === 0 ? fd.get("contactPhone") : undefined,
+  });
 
-  for (let i = 0; i < pax.adults; i++) {
-    passengers.push({
-      type: "adult",
-      name: fd.get(`adult_${i}_name`),
-      dob: fd.get(`adult_${i}_dob`),
-      email: i === 0 ? fd.get("contactEmail") : undefined,
-      phone: i === 0 ? fd.get("contactPhone") : undefined,
-    });
-  }
-  for (let i = 0; i < pax.children; i++) {
-    passengers.push({ type: "child", name: fd.get(`child_${i}_name`), dob: fd.get(`child_${i}_dob`) });
-  }
-  for (let i = 0; i < pax.infants; i++) {
-    passengers.push({ type: "infant", name: fd.get(`infant_${i}_name`), dob: fd.get(`infant_${i}_dob`) });
-  }
+  for (let i = 0; i < pax.adults; i++) passengers.push(readGroup("adult", i, "adult"));
+  for (let i = 0; i < pax.children; i++) passengers.push(readGroup("child", i, "child"));
+  for (let i = 0; i < pax.infants; i++) passengers.push(readGroup("infant", i, "infant"));
 
   return passengers;
 }
