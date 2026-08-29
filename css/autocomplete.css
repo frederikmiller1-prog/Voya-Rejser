@@ -1,0 +1,54 @@
+/* AIRPORT AUTOCOMPLETE */
+.autocomplete-field{position:relative;}
+.airport-suggestions{
+  list-style:none; margin:0; padding:6px; position:absolute; top:calc(100% + 6px); left:0; right:0;
+  background:var(--white); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 16px 40px -12px rgba(11,37,69,0.3); z-index:20;
+  max-height:240px; overflow-y:auto; display:none;
+}
+.airport-suggestions.open{display:block;}
+.airport-suggestions li{
+  padding:9px 10px; border-radius:8px; cursor:pointer; font-size:0.9rem;
+  display:flex; justify-content:space-between; gap:10px;
+}
+.airport-suggestions li:hover, .airport-suggestions li.active{background:var(--paper);}
+.airport-suggestions .city{font-weight:600; color:var(--ink);}
+.airport-suggestions .code{
+  font-family:var(--mono); font-size:0.78rem; color:var(--teal); font-weight:600;
+}
+.airport-suggestions .country{color:rgba(11,37,69,0.5); font-size:0.8rem; font-weight:400;}
+.airport-suggestions .empty{color:rgba(11,37,69,0.5); cursor:default; font-size:0.85rem;}
+
+/* PASSENGER PICKER */
+.pax-field{position:relative;}
+.pax-trigger{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+  font-family:var(--body); font-size:0.95rem; padding:11px 12px;
+  border:1px solid var(--line); border-radius:10px; background:var(--paper);
+  color:var(--ink); cursor:pointer;
+}
+.pax-popover{
+  display:none; position:absolute; top:calc(100% + 8px); right:0; width:280px;
+  background:var(--white); border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 20px 50px -14px rgba(11,37,69,0.32); padding:16px; z-index:20;
+}
+.pax-popover.open{display:block;}
+.pax-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line);}
+.pax-row:last-of-type{border-bottom:none;}
+.pax-row-text{display:flex; flex-direction:column;}
+.pax-row-text strong{font-size:0.92rem;}
+.pax-row-text span{font-size:0.76rem; color:rgba(11,37,69,0.5);}
+.pax-stepper{display:flex; align-items:center; gap:12px;}
+.pax-btn{
+  width:28px; height:28px; border-radius:50%; border:1px solid var(--ink);
+  background:var(--white); color:var(--ink); font-size:1rem; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all .15s ease;
+}
+.pax-btn:hover{background:var(--ink); color:var(--white);}
+.pax-btn:disabled{opacity:0.3; cursor:not-allowed; background:var(--white); color:var(--ink);}
+.pax-value{min-width:16px; text-align:center; font-family:var(--mono); font-weight:600;}
+.pax-done{
+  margin-top:12px; width:100%; background:var(--ink); color:var(--white); border:none;
+  border-radius:10px; padding:10px; font-weight:600; cursor:pointer;
+}
