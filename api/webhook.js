@@ -42,11 +42,11 @@ export default async function handler(req, res) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { offerId, fullName, email, dob, phone } = session.metadata;
+    const { offerId, passengers } = session.metadata;
 
     try {
-      await bookWithDuffel({ offerId, fullName, email, dob, phone });
-      console.log(`Billet booket hos Duffel for tilbud ${offerId}`);
+      await bookWithDuffel({ offerId, passengers: JSON.parse(passengers) });
+      console.log(`Billetter booket hos Duffel for tilbud ${offerId}`);
     } catch (err) {
       // VIGTIGT: kunden har betalt, men billetten kunne ikke bookes.
       // Log det tydeligt, så du kan booke manuelt og evt. refundere.
@@ -58,9 +58,52 @@ export default async function handler(req, res) {
   res.status(200).json({ received: true });
 }
 
-async function bookWithDuffel({ offerId, fullName, email, dob, phone }) {
-  const [firstName, ...rest] = fullName.trim().split(" ");
-  const lastName = rest.join(" ") || firstName;
+/* ------------------------------------------------------------
+   bookWithDuffel()
+   1. Henter det oprindelige tilbud igen fra Duffel for at få de
+      rigtige passager-id'er (og hvilken type Duffel har givet
+      hver af dem: adult / child / infant_without_seat).
+   2. Matcher dem, i samme rækkefølge, med de oplysninger kunden
+      indtastede (se collectPassengers() i js/script.js — voksne
+      først, så børn, så spædbørn).
+   3. Knytter hvert spædbarn til en ansvarlig voksen, som Duffel
+      kræver (infant_passenger_id).
+------------------------------------------------------------ */
+async function bookWithDuffel({ offerId, passengers }) {
+  const offerRes = await fetch(`https://api.duffel.com/air/offers/${offerId}`, {
+    headers: {
+      "Authorization": `Bearer ${process.env.DUFFEL_API_KEY}`,
+      "Duffel-Version": "v2",
+    },
+  });
+  if (!offerRes.ok) throw new Error(`Kunne ikke hente tilbud: ${await offerRes.text()}`);
+  const offerData = await offerRes.json();
+  const duffelPassengers = offerData.data.passengers; // samme rækkefølge som ved offer_request
+
+  const orderPassengers = duffelPassengers.map((dp, i) => {
+    const info = passengers[i] || {};
+    const [firstName, ...rest] = (info.name || "Ukendt Navn").trim().split(" ");
+    const p = {
+      id: dp.id,
+      type: dp.type,
+      given_name: firstName,
+      family_name: rest.join(" ") || firstName,
+      born_on: info.dob,
+      title: "mr",
+      gender: "m",
+    };
+    if (info.email) p.email = info.email;
+    if (info.phone) p.phone_number = info.phone;
+    return p;
+  });
+
+  // Knyt hvert spædbarn til en voksen (Duffel kræver infant_passenger_id på den voksne)
+  const adults = orderPassengers.filter(p => p.type === "adult");
+  const infants = orderPassengers.filter(p => p.type === "infant_without_seat");
+  infants.forEach((infant, i) => {
+    const responsibleAdult = adults[i] || adults[0];
+    if (responsibleAdult) responsibleAdult.infant_passenger_id = infant.id;
+  });
 
   const orderRes = await fetch("https://api.duffel.com/air/orders", {
     method: "POST",
@@ -74,18 +117,7 @@ async function bookWithDuffel({ offerId, fullName, email, dob, phone }) {
         type: "instant",
         selected_offers: [offerId],
         payments: [{ type: "balance", currency: "DKK", amount: "0" }],
-        passengers: [
-          {
-            id: "pas_0",
-            given_name: firstName,
-            family_name: lastName,
-            born_on: dob,
-            email,
-            phone_number: phone,
-            title: "mr",
-            gender: "m",
-          },
-        ],
+        passengers: orderPassengers,
       },
     }),
   });
