@@ -56,6 +56,7 @@ export default async function handler(req, res) {
       stops: offer.slices?.[0]?.segments?.length > 1 ? "1+ mellemlanding" : "Direkte",
       basePrice: Math.round(parseFloat(offer.total_amount)),
       currency: offer.total_currency,
+      slices: (offer.slices || []).map(formatSlice),
     }));
 
     res.status(200).json(formatted);
@@ -63,6 +64,52 @@ export default async function handler(req, res) {
     console.error(err);
     res.status(500).json({ error: "Kunne ikke hente priser fra Duffel." });
   }
+}
+
+/* ------------------------------------------------------------
+   formatSlice() / formatSegment()
+   Omdanner Duffels rå segment-data (fulde ISO-datoer, IATA-koder
+   for flyselskaber osv.) til det enkle format, som itinerary-
+   visningen i js/script.js forventer (klokkeslæt, flynummer,
+   samt et evt. mellemlandings-tekst mellem to segmenter).
+------------------------------------------------------------ */
+function formatSlice(slice) {
+  const segments = (slice.segments || []).map((seg, i, arr) => {
+    const formatted = {
+      airline: seg.marketing_carrier?.name || "Ukendt",
+      flightNumber: `${seg.marketing_carrier?.iata_code || ""}${seg.marketing_carrier_flight_number || ""}`,
+      from: seg.origin?.iata_code,
+      to: seg.destination?.iata_code,
+      depTime: formatTime(seg.departing_at),
+      arrTime: formatTime(seg.arriving_at),
+      duration: formatDuration(seg.duration),
+    };
+    if (i > 0) {
+      const prevArrival = new Date(arr[i - 1].arriving_at);
+      const thisDeparture = new Date(seg.departing_at);
+      const layoverMinutes = Math.round((thisDeparture - prevArrival) / 60000);
+      const h = Math.floor(layoverMinutes / 60);
+      const m = layoverMinutes % 60;
+      formatted.layoverBefore = `${h}t ${m}m ophold i ${arr[i - 1].destination?.iata_code}`;
+    }
+    return formatted;
+  });
+  return { segments };
+}
+
+function formatTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDuration(isoDuration) {
+  // Duffel returnerer varighed i ISO 8601-format, fx "PT3H35M"
+  if (!isoDuration) return "";
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  const h = match?.[1] || "0";
+  const m = match?.[2] || "0";
+  return `${h}t ${m}m`;
 }
 
 /* ------------------------------------------------------------
