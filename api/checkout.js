@@ -11,20 +11,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { offerId, amount, currency, passenger } = req.body;
+  const { offerId, amount, currency, passengers } = req.body;
+  const contact = passengers.find(p => p.email) || {};
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      customer_email: passenger?.email,
+      customer_email: contact.email,
       line_items: [
         {
           price_data: {
             currency,
             product_data: {
               name: `Rejse — tilbud ${offerId}`,
-              description: "Booket via Voya Rejser. Bekræftelse sendes pr. e-mail.",
+              description: `${passengers.length} rejsende · Booket via Voya Rejser`,
             },
             unit_amount: amount, // i øre/cents
           },
@@ -33,14 +34,14 @@ export default async function handler(req, res) {
       ],
       success_url: `${process.env.SITE_URL}/success.html?offer=${offerId}`,
       cancel_url: `${process.env.SITE_URL}/#soeg`,
-      // Gemmes her, så webhook'en (api/webhook.js) kan booke billetten
-      // hos Duffel, når betalingen er bekræftet.
+      // Gemmes her, så webhook'en (api/webhook.js) kan booke billetterne
+      // hos Duffel, når betalingen er bekræftet. NB: Stripe metadata-værdier
+      // er begrænset til 500 tegn — ved meget store rejsegrupper (7-8+
+      // personer) kan det være nødvendigt at gemme passagerlisten et andet
+      // sted (fx en lille database) i stedet for direkte i metadata.
       metadata: {
         offerId,
-        fullName: passenger?.fullName || "",
-        email: passenger?.email || "",
-        dob: passenger?.dob || "",
-        phone: passenger?.phone || "",
+        passengers: JSON.stringify(passengers),
       },
     });
 
