@@ -291,7 +291,7 @@ async function fetchOffers(searchParams) {
 
 function renderLoading() {
   resultsTitle.textContent = "Søger de bedste priser…";
-  resultsSub.textContent = "Henter live tilbud gennem Duffel.";
+  resultsSub.textContent = "Henter live tilbud fra flyselskaberne.";
   board.innerHTML = `<div class="flight-card" style="opacity:.5"><div>Søger…</div></div>`;
 }
 
@@ -576,6 +576,6 @@ async function submitCheckout(offer, passengers) {
     if (url) window.location.href = url;
     else throw new Error("no url");
   } catch (err) {
-    alert("Betaling er endnu ikke koblet til (Stripe-nøgle mangler i backend). Se README.md for opsætning.");
+    alert("Betalingen er endnu ikke sat op. Kontakt os venligst på mail, så hjælper vi dig videre.");
   }
 }
