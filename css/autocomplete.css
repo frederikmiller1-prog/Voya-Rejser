@@ -2,8 +2,8 @@
 .autocomplete-field{position:relative;}
 .airport-suggestions{
   list-style:none; margin:0; padding:6px; position:absolute; top:calc(100% + 6px); left:0; right:0;
-  background:var(--white); border:1px solid var(--line); border-radius:12px;
-  box-shadow:0 16px 40px -12px rgba(11,37,69,0.3); z-index:20;
+  background:rgba(255,255,255,0.96); backdrop-filter:blur(16px); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 16px 40px -12px rgba(28,29,34,0.3); z-index:20;
   max-height:240px; overflow-y:auto; display:none;
 }
 .airport-suggestions.open{display:block;}
@@ -16,8 +16,8 @@
 .airport-suggestions .code{
   font-family:var(--mono); font-size:0.78rem; color:var(--teal); font-weight:600;
 }
-.airport-suggestions .country{color:rgba(11,37,69,0.5); font-size:0.8rem; font-weight:400;}
-.airport-suggestions .empty{color:rgba(11,37,69,0.5); cursor:default; font-size:0.85rem;}
+.airport-suggestions .country{color:rgba(28,29,34,0.5); font-size:0.8rem; font-weight:400;}
+.airport-suggestions .empty{color:rgba(28,29,34,0.5); cursor:default; font-size:0.85rem;}
 
 /* PASSENGER PICKER */
 .pax-field{position:relative;}
@@ -29,15 +29,15 @@
 }
 .pax-popover{
   display:none; position:absolute; top:calc(100% + 8px); right:0; width:280px;
-  background:var(--white); border:1px solid var(--line); border-radius:14px;
-  box-shadow:0 20px 50px -14px rgba(11,37,69,0.32); padding:16px; z-index:20;
+  background:rgba(255,255,255,0.96); backdrop-filter:blur(16px); border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 20px 50px -14px rgba(28,29,34,0.32); padding:16px; z-index:20;
 }
 .pax-popover.open{display:block;}
 .pax-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line);}
 .pax-row:last-of-type{border-bottom:none;}
 .pax-row-text{display:flex; flex-direction:column;}
 .pax-row-text strong{font-size:0.92rem;}
-.pax-row-text span{font-size:0.76rem; color:rgba(11,37,69,0.5);}
+.pax-row-text span{font-size:0.76rem; color:rgba(28,29,34,0.5);}
 .pax-stepper{display:flex; align-items:center; gap:12px;}
 .pax-btn{
   width:28px; height:28px; border-radius:50%; border:1px solid var(--ink);
@@ -49,6 +49,7 @@
 .pax-btn:disabled{opacity:0.3; cursor:not-allowed; background:var(--white); color:var(--ink);}
 .pax-value{min-width:16px; text-align:center; font-family:var(--mono); font-weight:600;}
 .pax-done{
-  margin-top:12px; width:100%; background:var(--ink); color:var(--white); border:none;
+  margin-top:12px; width:100%; background:var(--gradient); color:var(--white); border:none;
   border-radius:10px; padding:10px; font-weight:600; cursor:pointer;
+  box-shadow:0 10px 24px -10px rgba(255,61,104,0.5);
 }
